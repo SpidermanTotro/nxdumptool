@@ -39,7 +39,7 @@ class ContentVerifyTests(unittest.TestCase):
 
     def test_hash_mismatch(self):
         (self.src / "test.nca").write_bytes(b"correct size, wrong hash")
-        data = b"totally different number!"
+        data = b"totally different number"
         self.assertEqual(len(data), len(b"correct size, wrong hash"))
         record = self._record("test.nca", data)
         result = verify(self.src, load_manifest(self._make_manifest([record])))
