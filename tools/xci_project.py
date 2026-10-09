@@ -103,7 +103,11 @@ def version_comparison(records: list[dict]) -> list[dict]:
 
 
 def build_project(xci: Path | None, title_reports: list[Path], assets: Path | None) -> dict:
-    from tools import xci_inventory, asset_workbench
+    if __package__:
+        from . import xci_inventory, asset_workbench
+    else:
+        import xci_inventory
+        import asset_workbench
 
     doc = {
         "schema": "nxdt-xci-rebuild-workbench-v1",
