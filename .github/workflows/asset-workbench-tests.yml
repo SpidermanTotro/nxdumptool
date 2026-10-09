@@ -1,0 +1,29 @@
+name: Test asset workbench (synthetic assets)
+
+on:
+  push:
+    branches: [release/23.0.1-validation-20261009]
+    paths:
+      - 'tools/asset_workbench.py'
+      - 'tests/test_asset_workbench.py'
+      - 'docs/ASSET_WORKBENCH.md'
+      - '.github/workflows/asset-workbench-tests.yml'
+  pull_request:
+    branches: [rewrite]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+      - name: Install image dependency
+        run: python3 -m pip install Pillow
+      - name: Synthetic image regression tests
+        run: python3 -m unittest discover -s tests -p 'test_asset_workbench.py' -v
+      - name: CLI smoke test
+        run: python3 tools/asset_workbench.py --help
