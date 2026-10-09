@@ -1,0 +1,33 @@
+name: Test XCI project workbench
+
+on:
+  push:
+    branches: [release/23.0.1-validation-20261009]
+    paths:
+      - 'tools/xci_project.py'
+      - 'tools/xci_inventory.py'
+      - 'tools/asset_workbench.py'
+      - 'tests/test_xci_project.py'
+      - 'docs/XCI_PROJECT_WORKBENCH.md'
+      - '.github/workflows/xci-project-tests.yml'
+  pull_request:
+    branches: [rewrite]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Pillow for optional readable-asset scan
+        run: python3 -m pip install Pillow
+      - name: Run synthetic version, local AI mock and HFS0 roundtrip tests
+        run: python3 -m unittest discover -s tests -p 'test_xci_project.py' -v
+      - name: CLI smoke tests
+        run: |
+          python3 tools/xci_project.py --help
+          python3 tools/xci_project.py project --help
+          python3 tools/xci_project.py pack-hfs0 --help
