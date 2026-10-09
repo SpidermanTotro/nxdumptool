@@ -158,7 +158,7 @@ def build_project(xci: Path | None, title_reports: list[Path], assets: Path | No
         }
     if not title_reports:
         doc["warnings"].append("No verified title/update record exports supplied: game/update versions remain unknown.")
-    doc["warnings"].append("Metadata analysis cannot identify encrypted textures, characters, plants or scripts.")
+    doc["warnings"].append("Metadata analysis cannot identify textures, characters, plants or scripts inside encrypted NCA content.")
     return doc
 
 
