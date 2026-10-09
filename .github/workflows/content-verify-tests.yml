@@ -1,0 +1,26 @@
+name: Test local content verifier
+
+on:
+  push:
+    branches: [release/23.0.1-validation-20261009]
+    paths:
+      - 'tools/content_verify.py'
+      - 'tests/test_content_verify.py'
+      - 'docs/CONTENT_VERIFY.md'
+      - '.github/workflows/content-verify-tests.yml'
+  pull_request:
+    branches: [rewrite]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify synthetic file content tests
+        run: python3 -m unittest discover -s tests -p 'test_content_verify.py' -v
+      - name: CLI smoke test
+        run: python3 tools/content_verify.py --help
