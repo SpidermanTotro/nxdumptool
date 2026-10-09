@@ -1,6 +1,14 @@
 name: Verify 23.0.1 candidate builds (no publishing)
 
 on:
+  push:
+    branches: [release/23.0.1-validation-20261009]
+    paths:
+      - 'Makefile'
+      - 'source/core/keys.c'
+      - 'source/views/titles_tab.cpp'
+      - 'romfs/i18n/en-US/titles_tab.json'
+      - 'source/views/system_update_verification.cpp'
   pull_request:
     branches: [rewrite]
   workflow_dispatch:
