@@ -1,0 +1,75 @@
+name: Verify 23.0.1 candidate builds (no publishing)
+
+on:
+  pull_request:
+    branches: [rewrite]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-switch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    container:
+      image: devkitpro/devkita64
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout candidate with pinned submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Verify declared app version and firmware guard
+        run: |
+          set -euo pipefail
+          grep -Eq '^VERSION_MAJOR[[:space:]]*:=.*23$' Makefile
+          grep -Eq '^VERSION_MINOR[[:space:]]*:=.*0$' Makefile
+          grep -Eq '^VERSION_MICRO[[:space:]]*:=.*1$' Makefile
+          grep -Fq '[NcaKeyGeneration_Since2200NUP - 1] = MAKEHOSVERSION(22, 0, 0)' source/core/keys.c
+          grep -Fq 'if (version > MAKEHOSVERSION(23, 0, 1)) return NcaKeyGeneration_Max;' source/core/keys.c
+          python3 -m json.tool romfs/i18n/en-US/titles_tab.json >/dev/null
+          git -c core.whitespace=cr-at-eol diff --check
+
+      - name: Install pinned libnx compatibility revision
+        run: |
+          set -euo pipefail
+          git clone https://github.com/switchbrew/libnx.git /tmp/libnx
+          git -C /tmp/libnx checkout feebd026ca0f5dcc2119f46ad8e0d16ad3dd4973
+          git -C /tmp/libnx submodule update --init --recursive
+          make -C /tmp/libnx install -j4
+
+      - name: Build PoC and full UI
+        run: |
+          set -euo pipefail
+          bash ./build.sh --noconfirm
+          make -j4
+
+      - name: Verify and checksum outputs
+        run: |
+          set -euo pipefail
+          test -s nxdumptool.nro
+          test -s nxdumptool.elf
+          test -s code_templates/tmp/nxdt_rw_poc.nro
+          test -s code_templates/tmp/nxdt_rw_poc.elf
+          strings nxdumptool.nacp | grep -Fq 23.0.1
+          sha256sum nxdumptool.nro nxdumptool.elf \
+            code_templates/tmp/nxdt_rw_poc.nro \
+            code_templates/tmp/nxdt_rw_poc.elf \
+            > 23.0.1-candidate-SHA256SUMS.txt
+
+      - name: Upload candidate binaries for review only
+        uses: actions/upload-artifact@v4
+        with:
+          name: nxdumptool-23.0.1-candidate
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            nxdumptool.nro
+            nxdumptool.elf
+            code_templates/tmp/nxdt_rw_poc.nro
+            code_templates/tmp/nxdt_rw_poc.elf
+            23.0.1-candidate-SHA256SUMS.txt
