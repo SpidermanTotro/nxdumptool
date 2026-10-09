@@ -181,6 +181,8 @@ def main() -> int:
             with path.open("w" if args.overwrite else "x", encoding="utf-8") as stream:
                 stream.write(content)
             print(path)
+    except FileExistsError as exc:
+        parser.exit(3, f"Report already exists: {exc.filename}. Use --overwrite to replace it.\n")
     except (InvalidImage, OSError) as exc:
         parser.exit(2, f"XCI scan failed: {exc}\n")
     return 0
