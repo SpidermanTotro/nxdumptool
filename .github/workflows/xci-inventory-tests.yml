@@ -1,0 +1,26 @@
+name: Test offline XCI inventory
+
+on:
+  push:
+    branches: [release/23.0.1-validation-20261009]
+    paths:
+      - 'tools/xci_inventory.py'
+      - 'tests/test_xci_inventory.py'
+      - 'docs/XCI_INVENTORY.md'
+      - '.github/workflows/xci-inventory-tests.yml'
+  pull_request:
+    branches: [rewrite]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Synthetic XCI parser tests
+        run: python3 -m unittest discover -s tests -p 'test_xci_inventory.py' -v
+      - name: CLI help smoke test
+        run: python3 tools/xci_inventory.py --help
